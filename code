@@ -1,0 +1,150 @@
+#include <iostream>
+#include <queue>
+#include <stack>
+#include <vector>
+#include <string>
+
+class Job {
+public:
+    int jobID;
+    std::string jobName;
+    std::string status; // Status of the job (Pending, Processing, Completed)
+
+    Job(int id, std::string name) : jobID(id), jobName(name), status("Pending") {}
+};
+
+class JobScheduler {
+private:
+    std::queue<Job> jobQueue;    // Queue for incoming jobs
+    std::stack<Job> completedJobs; // Stack for completed jobs
+    std::vector<Job> allJobs;    // Vector to store all jobs for status tracking
+
+public:
+    void addJob(int id, const std::string& name) {
+        Job newJob(id, name);
+        jobQueue.push(newJob);
+        allJobs.push_back(newJob);
+        std::cout << "Job added: " << name << " (ID: " << id << ")\n";
+    }
+
+    void processJobs() {
+        if (jobQueue.empty()) {
+            std::cout << "No jobs to process.\n";
+            return;
+        }
+
+        while (!jobQueue.empty()) {
+            Job currentJob = jobQueue.front();
+            jobQueue.pop();
+            std::cout << "Processing job: " << currentJob.jobName << " (ID: " << currentJob.jobID << ")\n";
+
+            // Update status to Processing
+            for (size_t i = 0; i < allJobs.size(); ++i) {
+                if (allJobs[i].jobID == currentJob.jobID) {
+                    allJobs[i].status = "Processing";
+                    break;
+                }
+            }
+
+            // Simulate job completion
+            currentJob.status = "Completed";
+            completedJobs.push(currentJob);
+
+            // Update status to Completed in allJobs
+            for (size_t i = 0; i < allJobs.size(); ++i) {
+                if (allJobs[i].jobID == currentJob.jobID) {
+                    allJobs[i].status = "Completed";
+                    break;
+                }
+            }
+        }
+    }
+
+    void displayCompletedJobs() {
+        if (completedJobs.empty()) {
+            std::cout << "No completed jobs.\n";
+            return;
+        }
+
+        std::cout << "Completed Jobs:\n";
+        std::stack<Job> tempStack = completedJobs; // Copy stack for display
+
+        while (!tempStack.empty()) {
+            Job job = tempStack.top();
+            std::cout << "Job Name: " << job.jobName << " (ID: " << job.jobID << ")\n";
+            tempStack.pop();
+        }
+    }
+
+    void displayPendingJobs() {
+        std::cout << "Pending Jobs:\n";
+        for (size_t i = 0; i < allJobs.size(); ++i) {
+            if (allJobs[i].status == "Pending") {
+                std::cout << "Job Name: " << allJobs[i].jobName 
+                          << " (ID: " << allJobs[i].jobID << ")\n";
+            }
+        }
+    }
+
+    void displayAllJobs() {
+        if (allJobs.empty()) {
+            std::cout << "No jobs in the system.\n";
+            return;
+        }
+
+        std::cout << "All Jobs:\n";
+        for (size_t i = 0; i < allJobs.size(); ++i) {
+            std::cout << "Job Name: " << allJobs[i].jobName 
+                      << " (ID: " << allJobs[i].jobID 
+                      << ", Status: " << allJobs[i].status << ")\n";
+        }
+    }
+};
+
+int main() {
+    JobScheduler scheduler;
+    int choice, id;
+    std::string name;
+
+    do {
+        std::cout << "\nJob Scheduling System\n";
+        std::cout << "1. Add Job\n";
+        std::cout << "2. Process Jobs\n";
+        std::cout << "3. Display Completed Jobs\n";
+        std::cout << "4. Display Pending Jobs\n";
+        std::cout << "5. Display All Jobs\n";
+        std::cout << "6. Exit\n";
+        std::cout << "Enter your choice: ";
+        std::cin >> choice;
+
+        switch (choice) {
+            case 1:
+                std::cout << "Enter Job ID: ";
+                std::cin >> id;
+                std::cout << "Enter Job Name: ";
+                std::cin.ignore(); // Clear the input buffer
+                std::getline(std::cin, name);
+                scheduler.addJob(id, name);
+                break;
+            case 2:
+                scheduler.processJobs();
+                break;
+            case 3:
+                scheduler.displayCompletedJobs();
+                break;
+            case 4:
+                scheduler.displayPendingJobs();
+                break;
+            case 5:
+                scheduler.displayAllJobs();
+                break;
+            case 6:
+                std::cout << "Exiting the system. Goodbye!\n";
+                break;
+            default:
+                std::cout << "Invalid choice. Please try again.\n";
+        }
+    } while (choice != 6);
+
+    return 0;
+}
